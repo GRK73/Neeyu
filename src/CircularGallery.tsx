@@ -364,7 +364,7 @@ class AppInstance {
     this.createGeometry();
     this.createMedias(items, bend, textColor, borderRadius, font);
     
-    this.raycast = new Raycast(this.gl);
+    this.raycast = new Raycast();
     this.mouse = new Vec2();
     
     this.renderLoop(); // update 대신 renderLoop로 명명하여 충돌 방지
