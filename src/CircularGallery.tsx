@@ -324,7 +324,7 @@ class AppInstance {
   scene: any;
   planeGeometry: any;
   mediasImages: any[] = [];
-  medias: any[] = [];
+  medias: Media[] = [];
   screen: any;
   viewport: any;
   isDown: boolean = false;
@@ -367,7 +367,7 @@ class AppInstance {
     this.raycast = new Raycast(this.gl);
     this.mouse = new Vec2();
     
-    this.update();
+    this.renderLoop(); // update 대신 renderLoop로 명명하여 충돌 방지
     this.addEventListeners();
   }
   createRenderer() {
@@ -525,7 +525,7 @@ class AppInstance {
       this.medias.forEach(media => media.onResize({ screen: this.screen, viewport: this.viewport }));
     }
   }
-  update() {
+  renderLoop() {
     this.scroll.current = lerp(this.scroll.current, this.scroll.target, this.scroll.ease);
     const direction = this.scroll.current > this.scroll.last ? 'right' : 'left';
     if (this.medias) {
@@ -533,7 +533,7 @@ class AppInstance {
     }
     this.renderer.render({ scene: this.scene, camera: this.camera });
     this.scroll.last = this.scroll.current;
-    this.raf = window.requestAnimationFrame(this.update.bind(this));
+    this.raf = window.requestAnimationFrame(this.renderLoop.bind(this));
   }
   addEventListeners() {
     this.boundOnResize = this.onResize.bind(this);

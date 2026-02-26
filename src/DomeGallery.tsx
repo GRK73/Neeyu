@@ -33,7 +33,6 @@ function buildItems(pool: any[], seg: number) {
     return { src: image.src || '', alt: image.alt || '' };
   });
 
-  // 사진 순서를 랜덤하게 섞음
   const shuffledImages = [...normalizedImages].sort(() => 0.5 - Math.random());
   const usedImages = Array.from({ length: totalSlots }, (_, i) => shuffledImages[i % shuffledImages.length]);
 
@@ -49,12 +48,11 @@ export default function DomeGallery({
   fit = 0.8,
   minRadius = 600,
   maxRadius = Infinity,
-  padFactor = 0.25,
   overlayBlurColor = '#080808',
   maxVerticalRotationDeg = 0,
-  dragSensitivity = 20,
-  enlargeTransitionMs = 300,
-  segments = 34,
+  dragSensitivity = DEFAULTS.dragSensitivity,
+  enlargeTransitionMs = DEFAULTS.enlargeTransitionMs,
+  segments = DEFAULTS.segments,
   dragDampening = 2,
   imageBorderRadius = '30px',
   openedImageBorderRadius = '30px',
@@ -164,8 +162,6 @@ export default function DomeGallery({
     }
 
     const { tx, ty, sx, sy } = originalTileInfoRef.current;
-    
-    // 역재생 애니메이션 시작
     overlay.style.transform = `translate(${tx}px, ${ty}px) scale(${sx}, ${sy})`;
     overlay.style.opacity = '0';
     rootRef.current?.removeAttribute('data-enlarging');
@@ -200,8 +196,6 @@ export default function DomeGallery({
     const ty = tileR.top - frameR.top;
     const sx = tileR.width / frameR.width;
     const sy = tileR.height / frameR.height;
-
-    // 원래 위치 정보 저장
     originalTileInfoRef.current = { tx, ty, sx, sy };
 
     overlay.style.transform = `translate(${tx}px, ${ty}px) scale(${sx}, ${sy})`;
