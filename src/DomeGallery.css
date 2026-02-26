@@ -1,0 +1,132 @@
+.sphere-root {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  --radius: 2000px; /* 구형 크기 추가 확대 */
+  --viewer-pad: 72px;
+  --circ: calc(var(--radius) * 3.14159);
+  --rot-y: calc((360deg / var(--segments-x)) / 2);
+  --rot-x: calc((360deg / var(--segments-y)) / 2);
+  --item-width: calc(var(--circ) / var(--segments-x));
+  --item-height: calc(var(--circ) / var(--segments-y));
+}
+
+.sphere-root * { box-sizing: border-box; }
+
+.sphere, .item, .item__image { transform-style: preserve-3d; }
+
+main.sphere-main {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  touch-action: none;
+  background: transparent;
+}
+
+.stage {
+  width: 100%;
+  height: 100%;
+  display: grid;
+  place-items: center;
+  perspective: calc(var(--radius) * 2);
+  perspective-origin: 50% 50%;
+}
+
+.sphere {
+  transform: translateZ(calc(var(--radius) * -1));
+  will-change: transform;
+}
+
+.overlay, .overlay--blur {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 3;
+}
+
+.overlay {
+  background-image: radial-gradient(rgba(0,0,0,0) 60%, var(--overlay-blur-color, #080808) 100%);
+}
+
+.overlay--blur {
+  backdrop-filter: blur(2px);
+  -webkit-mask-image: radial-gradient(rgba(0,0,0,0) 65%, black 90%);
+}
+
+.item {
+  /* 사진 크기 계산식을 원본 기초 상태로 복구 */
+  width: calc(var(--item-width) * var(--item-size-x));
+  height: calc(var(--item-height) * var(--item-size-y));
+  position: absolute;
+  top: -999px; bottom: -999px; left: -999px; right: -999px;
+  margin: auto;
+  transform-origin: 50% 50%;
+  backface-visibility: hidden;
+  /* 회전 로직 원본 복구 */
+  transform: rotateY(calc(var(--rot-y) * var(--offset-x))) rotateX(calc(var(--rot-x) * var(--offset-y))) translateZ(var(--radius));
+}
+
+.item__image {
+  position: absolute;
+  inset: 8px;
+  border-radius: var(--tile-radius, 12px);
+  overflow: hidden;
+  cursor: pointer;
+  background: #111;
+}
+
+.item__image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  filter: var(--image-filter, none);
+}
+
+.viewer {
+  position: absolute;
+  inset: 0;
+  z-index: 20;
+  pointer-events: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--viewer-pad);
+}
+
+.viewer .frame {
+  height: 100%;
+  aspect-ratio: 1;
+  border-radius: var(--enlarge-radius, 32px);
+}
+
+.viewer .scrim {
+  position: absolute;
+  inset: 0;
+  z-index: 10;
+  background: rgba(0, 0, 0, 0.8);
+  opacity: 0;
+  transition: opacity 0.4s;
+  pointer-events: none;
+}
+
+.sphere-root[data-enlarging='true'] .viewer .scrim {
+  opacity: 1;
+  pointer-events: all;
+}
+
+.viewer .enlarge {
+  position: absolute;
+  z-index: 30;
+  border-radius: var(--enlarge-radius, 32px);
+  overflow: hidden;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+  transform-origin: top left;
+}
+
+.viewer .enlarge img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
