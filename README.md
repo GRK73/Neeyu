@@ -13,10 +13,3 @@
 ## Folder Structure
 - public/img: Image asset database
 - src/: Core logic and gallery components
-
-## Content
-- Exhibition Hall 1: 3D Circular Gallery (WebGL)
-- Exhibition Hall 2: Infinite Scroll Grid (3-Column)
-- Exhibition Hall 3: 3D Spherical Dome Gallery
-- Fan Arts: Coming Soon View
-- Assets: 400+ Images Manifest-based loading
