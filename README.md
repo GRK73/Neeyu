@@ -10,6 +10,10 @@
 - Deployment: Cloudflare Pages
 - Font: Cafe24Ssurround
 
+## Folder Structure
+- public/img: Image asset database
+- src/: Core logic and gallery components
+
 ## Content
 - Exhibition Hall 1: 3D Circular Gallery (WebGL)
 - Exhibition Hall 2: Infinite Scroll Grid (3-Column)
