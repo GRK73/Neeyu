@@ -2,12 +2,15 @@ import { useState, useEffect, useCallback } from 'react';
 import CircularGallery from './CircularGallery';
 import Hall2Grid from './Hall2Grid';
 import DomeGallery from './DomeGallery';
+import ScatteredDesk from './ScatteredDesk';
 import './App.css';
 
 function App() {
   const [images, setImages] = useState<string[]>([]);
+  const [fanarts, setFanarts] = useState<string[]>([]);
   const [galleryItems, setGalleryItems] = useState<{ image: string; text: string }[]>([]);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [refreshKey, setRefreshKey] = useState(0); // 고유 갱신 키
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [currentHall, setCurrentHall] = useState('제 1 전시관');
   const [selectedItem, setSelectedItem] = useState<{ 
@@ -37,31 +40,52 @@ function App() {
           text: ""
         })));
       });
+
+    fetch('/fanarts.json')
+      .then((res) => res.json())
+      .then((data: string[]) => {
+        setFanarts(data);
+      })
+      .catch((err) => console.error("FanArts 로드 실패:", err));
   }, []);
 
   const refreshGallery = () => {
-    if (images.length === 0 || isRefreshing) return;
+    if (images.length === 0 && fanarts.length === 0) return;
+    if (isRefreshing) return;
+    
+    // 1. 페이드 아웃 시작
     setIsRefreshing(true);
+
+    // 2. 완전히 사라진 후(500ms) 데이터 교체
     setTimeout(() => {
-      const shuffled = [...images].sort(() => 0.5 - Math.random());
-      setGalleryItems(shuffled.slice(0, 15).map((name) => ({
-        image: `/img/${name}`,
-        text: ""
-      })));
+      if (currentHall !== 'Fan Arts' && images.length > 0) {
+        const shuffled = [...images].sort(() => 0.5 - Math.random());
+        setGalleryItems(shuffled.slice(0, 15).map((name) => ({
+          image: `/img/${name}`,
+          text: ""
+        })));
+      }
+      
+      if (currentHall === 'Fan Arts' && fanarts.length > 0) {
+        setFanarts(prev => [...prev].sort(() => 0.5 - Math.random()));
+      }
+
+      // 데이터가 완전히 교체된 후 컴포넌트를 단 한 번만 다시 마운트
+      setRefreshKey(prev => prev + 1);
+
+      // 3. 내용 교체 후 다시 페이드 인
       setTimeout(() => {
         setIsRefreshing(false);
       }, 50);
-    }, 400); 
+    }, 500); 
   };
 
   const changeHall = (hallName: string) => {
     if (hallName === currentHall || isRefreshing) return;
     
-    // 1. 페이드 아웃 시작
     setIsRefreshing(true);
     setIsMenuOpen(false);
 
-    // 2. 완전히 사라진 후(500ms) 내용 교체
     setTimeout(() => {
       setCurrentHall(hallName);
       window.scrollTo(0, 0);
@@ -71,8 +95,9 @@ function App() {
         image: `/img/${name}`,
         text: ""
       })));
+
+      setRefreshKey(prev => prev + 1);
       
-      // 3. 내용 교체 후 다시 페이드 인
       setTimeout(() => {
         setIsRefreshing(false);
       }, 50);
@@ -90,11 +115,14 @@ function App() {
       const maxWidth = window.innerWidth * 0.85;
       const maxHeight = window.innerHeight * 0.85;
       const ratio = Math.min(maxWidth / naturalWidth, maxHeight / naturalHeight);
+      
       const finalW = naturalWidth * ratio;
       const finalH = naturalHeight * ratio;
+
       const targetScale = Math.min(maxWidth / data.width, maxHeight / data.height);
       const arrivalW = data.width * targetScale;
       const arrivalH = data.height * targetScale;
+
       setSelectedItem({ 
         ...data, 
         arrivalWidth: arrivalW,
@@ -102,9 +130,11 @@ function App() {
         naturalWidth: finalW, 
         naturalHeight: finalH
       });
+      
       setIsAnimating(false);
       setIsExpanded(false);
       setIsClosing(false);
+
       requestAnimationFrame(() => {
         requestAnimationFrame(() => {
           setIsAnimating(true);
@@ -118,8 +148,10 @@ function App() {
 
   const handleCloseModal = () => {
     if (!isAnimating || isClosing) return;
+    
     setIsClosing(true);
     setIsExpanded(false);
+    
     setTimeout(() => {
       setIsAnimating(false);
       setTimeout(() => {
@@ -178,7 +210,7 @@ function App() {
               <Hall2Grid allImages={images} onItemClick={handleItemClick} />
             ) : currentHall === '제 3 전시관' ? (
               <DomeGallery 
-                key={isRefreshing ? 'refreshing' : currentHall}
+                key={`dome-${refreshKey}`} // 고유 키 사용
                 images={images} 
                 fit={2.5}
                 maxVerticalRotationDeg={0}
@@ -187,16 +219,17 @@ function App() {
                 grayscale={false}
               />
             ) : (
-              <div className="fan-arts-view">
-                <h2 className="coming-soon-text">Coming Soon</h2>
-                <p className="contact-email">ggorii123@naver.com 으로 팬아트 보내주세요.</p>
-              </div>
+              <ScatteredDesk 
+                key={`fanarts-${refreshKey}`} // 고유 키 사용
+                allFanArts={fanarts} 
+                onItemClick={handleItemClick} 
+              />
             )}
           </div>
         </section>
       </main>
 
-      {(currentHall === '제 1 전시관' || currentHall === '제 3 전시관') && (
+      {(currentHall === '제 1 전시관' || currentHall === '제 3 전시관' || currentHall === 'Fan Arts') && (
         <button 
           className={`refresh-button fixed-bottom ${isRefreshing ? 'loading' : ''}`} 
           onClick={refreshGallery}
