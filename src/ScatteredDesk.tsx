@@ -5,7 +5,7 @@ import './ScatteredDesk.css';
 interface PolaroidProps {
   imgName: string;
   onItemClick: (data: any) => void;
-  containerRef: React.RefObject<HTMLDivElement>;
+  containerRef: React.RefObject<HTMLDivElement | null>;
   bringToFront: () => number;
 }
 
